@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, CreditCard, Lock } from 'lucide-react';
+import { ArrowLeft, CreditCard, Lock, ShoppingBag } from 'lucide-react';
 import { useCartStore } from '@/stores/cart';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
@@ -94,7 +94,7 @@ export function Checkout() {
         key,
         amount: amountPaise,
         currency: 'INR',
-        name: 'APEX Fragrances',
+        name: 'Aura Essence Fragrances',
         description: 'Order Payment',
         order_id: rpOrder.id,
         prefill: {
@@ -154,13 +154,21 @@ export function Checkout() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen py-16 px-4">
+      <div className="min-h-screen bg-gradient-to-br from-white to-slate-50 dark:from-slate-950 dark:to-slate-900 py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-3xl font-bold text-primary-950 dark:text-neutral-100 mb-8">
+          <div className="mb-6">
+            <div className="inline-block bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 p-8 rounded-full">
+              <ShoppingBag className="h-16 w-16 text-amber-500 mx-auto opacity-75" />
+            </div>
+          </div>
+          <h1 className="text-5xl font-bold text-slate-900 dark:text-white mb-4">
             Your Cart is Empty
           </h1>
-          <Button size="lg" asChild>
-            <Link href="/collections/all">Continue Shopping</Link>
+          <p className="text-xl text-slate-600 dark:text-gray-300 mb-8">
+            Add items to your cart before proceeding to checkout
+          </p>
+          <Button size="lg" asChild className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold shadow-lg">
+            <Link href="/collections/men">Browse Collections</Link>
           </Button>
         </div>
       </div>
@@ -168,13 +176,13 @@ export function Checkout() {
   }
 
   return (
-    <div className="min-h-screen py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-white to-slate-50 dark:from-slate-950 dark:to-slate-900 py-12 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center mb-8">
-          <Button variant="ghost" asChild>
+        <div className="flex items-center mb-12">
+          <Button variant="ghost" asChild className="text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30">
             <Link href="/cart">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-5 w-5 mr-2" />
               Back to Cart
             </Link>
           </Button>
@@ -183,9 +191,12 @@ export function Checkout() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Checkout Form */}
           <div>
-            <h1 className="text-3xl font-bold text-primary-950 dark:text-neutral-100 mb-8">
-              Checkout
-            </h1>
+            <div className="mb-8">
+              <span className="text-amber-600 dark:text-amber-400 text-sm font-semibold tracking-widest uppercase">Secure Checkout</span>
+              <h1 className="text-5xl font-bold text-slate-900 dark:text-white mt-2">
+                Shipping Details
+              </h1>
+            </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Contact Information */}

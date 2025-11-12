@@ -7,6 +7,7 @@ import { Footer } from '@/components/layout/Footer';
 import { CartDrawer } from '@/components/commerce/CartDrawer';
 import { ToastContainer } from '@/components/ui/Toast';
 import { ProfileChecker } from '@/components/ui/ProfileChecker';
+// import { AuthDebugPanel } from '@/components/ui/AuthDebugPanel';
 import { useToast } from '@/hooks/useToast';
 import { onAuthStateChange } from '@/lib/supabase/auth';
 import { useAuthStore } from '@/stores/auth';
@@ -28,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     };
     init();
 
-    const unsubscribe = onAuthStateChange(async (authUser) => {
+    const { data: { subscription } } = onAuthStateChange(async (authUser) => {
       await useAuthStore.getState().loadUser();
 
       if (authUser) {
@@ -52,7 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     });
 
     return () => {
-      if (typeof unsubscribe === 'function') unsubscribe();
+      subscription?.unsubscribe();
     };
   }, []);
 
@@ -66,6 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Footer />
           <CartDrawer />
           <ToastContainer toasts={toasts} onRemove={removeToast} />
+          {/* {process.env.NODE_ENV === 'development' && <AuthDebugPanel />} */}
         </div>
       </body>
     </html>

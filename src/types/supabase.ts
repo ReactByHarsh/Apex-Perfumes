@@ -65,6 +65,7 @@ export interface Database {
           is_new: boolean
           is_best_seller: boolean
           is_on_sale: boolean
+          sizes: Json
           created_at: string
           updated_at: string
         }
@@ -86,6 +87,7 @@ export interface Database {
           is_new?: boolean
           is_best_seller?: boolean
           is_on_sale?: boolean
+          sizes?: Json
           created_at?: string
           updated_at?: string
         }
@@ -107,6 +109,7 @@ export interface Database {
           is_new?: boolean
           is_best_seller?: boolean
           is_on_sale?: boolean
+          sizes?: Json
           created_at?: string
           updated_at?: string
         }
@@ -243,9 +246,11 @@ export interface Database {
           user_id: string | null
           product_id: string | null
           quantity: number | null
+          selected_size: string | null
           product_name: string | null
           product_price: number | null
           product_images: string[] | null
+          size_price: number | null
           total_price: number | null
         }
         Relationships: []
@@ -260,10 +265,27 @@ export interface Database {
         }
         Returns: undefined
       }
+      upsert_cart_item_with_size: {
+        Args: {
+          p_user_id: string
+          p_product_id: string
+          p_quantity: number
+          p_selected_size: string
+        }
+        Returns: undefined
+      }
       remove_cart_item: {
         Args: {
           p_user_id: string
           p_product_id: string
+        }
+        Returns: undefined
+      }
+      remove_cart_item_with_size: {
+        Args: {
+          p_user_id: string
+          p_product_id: string
+          p_selected_size: string
         }
         Returns: undefined
       }
@@ -272,6 +294,15 @@ export interface Database {
           p_user_id: string
           p_product_id: string
           p_quantity: number
+        }
+        Returns: undefined
+      }
+      set_cart_item_quantity_with_size: {
+        Args: {
+          p_user_id: string
+          p_product_id: string
+          p_quantity: number
+          p_selected_size: string
         }
         Returns: undefined
       }

@@ -6,6 +6,7 @@ import { signIn, signUp, signOut, getCurrentUser, onAuthStateChange } from '@/li
 interface AuthState {
   user: User | null;
   isLoading: boolean;
+  isInitialized: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   signup: (data: any) => Promise<boolean>;
   logout: () => Promise<void>;
@@ -28,6 +29,7 @@ function convertToAppUser(authUser: any): User {
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isLoading: false,
+  isInitialized: false,
 
   login: async (email: string, password: string) => {
     try {
@@ -92,13 +94,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const authUser = await getCurrentUser();
       if (authUser) {
         const user = convertToAppUser(authUser);
-        set({ user });
+        set({ user, isInitialized: true });
       } else {
-        set({ user: null });
+        set({ user: null, isInitialized: true });
       }
     } catch (error) {
       console.error('Failed to load user:', error);
-      set({ user: null });
+      set({ user: null, isInitialized: true });
     }
   },
 }));

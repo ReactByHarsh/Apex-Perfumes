@@ -32,11 +32,11 @@ export function About() {
         {/* Hero Section */}
         <section className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-primary-950 dark:text-neutral-100 mb-6 tracking-wide">
-            The APEX Story
+            The Aura Essence Story
           </h1>
           <p className="text-xl text-primary-700 dark:text-neutral-300 max-w-3xl mx-auto leading-relaxed">
             Born from a passion for extraordinary fragrance and an unwavering commitment to excellence, 
-            APEX represents the pinnacle of luxury perfumery.
+            Aura Essence represents the pinnacle of luxury perfumery.
           </p>
         </section>
 
@@ -47,7 +47,7 @@ export function About() {
               Our Beginning
             </h2>
             <p className="text-primary-700 dark:text-neutral-300 mb-4 leading-relaxed">
-              APEX was founded in 2020 by a team of fragrance enthusiasts who believed that luxury 
+              Aura Essence was founded in 2020 by a team of fragrance enthusiasts who believed that luxury 
               perfumery had lost touch with its artisanal roots. We set out to create a brand that 
               would honor the traditional craftsmanship of perfume-making while embracing modern 
               innovation and sustainability.
@@ -58,7 +58,7 @@ export function About() {
               the world, we developed our first collection of distinctive fragrances.
             </p>
             <p className="text-primary-700 dark:text-neutral-300 leading-relaxed">
-              Today, APEX has grown into a globally recognized luxury fragrance house, but we remain 
+              Today, Aura Essence has grown into a globally recognized luxury fragrance house, but we remain 
               true to our founding principles: uncompromising quality, artistic integrity, and the 
               belief that fragrance is the ultimate form of personal expression.
             </p>
@@ -66,7 +66,7 @@ export function About() {
           <div className="relative">
             <img
               src="https://images.pexels.com/photos/1191710/pexels-photo-1191710.jpeg?auto=compress&cs=tinysrgb&w=800"
-              alt="APEX atelier"
+              alt="Aura Essence atelier"
               className="rounded-lg shadow-lg"
             />
           </div>
@@ -109,7 +109,7 @@ export function About() {
                 Our Process
               </h2>
               <p className="text-primary-700 dark:text-neutral-300 mb-4 leading-relaxed">
-                Each APEX fragrance begins with a concept—a moment, emotion, or memory that we want 
+                Each Aura Essence fragrance begins with a concept—a moment, emotion, or memory that we want 
                 to capture in scent. Our master perfumers then embark on a journey of discovery, 
                 selecting and blending the finest ingredients to bring that vision to life.
               </p>
@@ -120,7 +120,7 @@ export function About() {
               </p>
               <p className="text-primary-700 dark:text-neutral-300 leading-relaxed">
                 The creation process can take months or even years, with countless iterations and 
-                refinements until we achieve the perfect balance and complexity that defines an APEX fragrance.
+                refinements until we achieve the perfect balance and complexity that defines an Aura Essence fragrance.
               </p>
             </div>
           </div>
@@ -132,7 +132,7 @@ export function About() {
             Our Team
           </h2>
           <p className="text-primary-700 dark:text-neutral-300 max-w-3xl mx-auto mb-12 leading-relaxed">
-            Behind every APEX fragrance is a team of passionate individuals dedicated to the art of 
+            Behind every Aura Essence fragrance is a team of passionate individuals dedicated to the art of 
             perfumery. From our master perfumers to our sustainability experts, each team member 
             brings unique expertise and creativity to our mission.
           </p>
@@ -182,7 +182,7 @@ export function About() {
             Looking Forward
           </h2>
           <p className="text-primary-700 dark:text-neutral-300 max-w-3xl mx-auto leading-relaxed">
-            As we continue to grow, APEX remains committed to pushing the boundaries of luxury 
+            As we continue to grow, Aura Essence remains committed to pushing the boundaries of luxury 
             fragrance while staying true to our core values. We're excited about expanding our 
             collections, exploring new sustainable practices, and continuing to create fragrances 
             that inspire and delight fragrance lovers around the world.

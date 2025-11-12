@@ -19,7 +19,7 @@ export function Terms() {
               Agreement to Terms
             </h2>
             <p className="mb-4">
-              These Terms of Service ("Terms") govern your use of the APEX Fragrances website and 
+              These Terms of Service ("Terms") govern your use of the Aura Essence website and 
               services. By accessing or using our services, you agree to be bound by these Terms.
             </p>
           </section>
@@ -117,7 +117,7 @@ export function Terms() {
             </h2>
             <p className="mb-4">
               All content on our website, including text, graphics, logos, and images, is owned by 
-              APEX Fragrances and protected by intellectual property laws. You may not use our 
+              Aura Essence and protected by intellectual property laws. You may not use our 
               content without written permission.
             </p>
           </section>
@@ -184,7 +184,7 @@ export function Terms() {
               If you have questions about these Terms, please contact us:
             </p>
             <div className="bg-neutral-50 dark:bg-primary-900 p-4 rounded-lg">
-              <p className="mb-2">Email: legal@apex-fragrances.com</p>
+              <p className="mb-2">Email: legal@aura-essence.com</p>
               <p className="mb-2">Phone: +1 (555) 123-4567</p>
               <p>Address: 123 Luxury Lane, Beverly Hills, CA 90210</p>
             </div>

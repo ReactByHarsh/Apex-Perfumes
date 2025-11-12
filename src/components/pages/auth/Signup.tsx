@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, User, Mail, Lock, CheckCircle, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -34,7 +34,7 @@ export function Signup() {
       if (success) {
         showToast({
           title: 'Account created',
-          description: 'Welcome to APEX! You are signed in.',
+          description: 'Welcome to Aura Essence! You are signed in.',
           variant: 'success'
         });
         router.push('/');
@@ -58,107 +58,151 @@ export function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-slate-900 to-purple-900 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 py-12 px-4 relative overflow-hidden">
+      {/* Decorative Blobs */}
+      <div className="absolute top-10 left-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl"></div>
+
+      <div className="relative z-10 max-w-md w-full">
+        <div className="text-center mb-10">
           <Link
             href="/"
-            className="text-3xl font-bold tracking-widest text-primary-950 dark:text-neutral-100 hover:text-accent-500 transition-colors"
+            className="text-5xl font-bold tracking-widest text-white hover:text-purple-300 transition-colors inline-block mb-8"
           >
-            APEX
+            AURA
           </Link>
-          <h2 className="mt-6 text-2xl font-bold text-primary-950 dark:text-neutral-100">
-            Create your account
+          <h2 className="text-4xl font-bold text-white mb-3">
+            Create Your Account
           </h2>
-          <p className="mt-2 text-primary-600 dark:text-neutral-400">
+          <p className="text-purple-200 text-lg">
             Already have an account?{' '}
-            <Link href="/auth/login" className="text-accent-500 hover:text-accent-600 transition-colors">
+            <Link href="/auth/login" className="text-purple-400 hover:text-purple-300 font-bold transition-colors">
               Sign in
             </Link>
           </p>
         </div>
 
-        <div className="bg-white dark:bg-primary-900 py-8 px-6 shadow-lg rounded-lg border border-primary-200 dark:border-primary-800">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <div className="bg-white/10 dark:bg-slate-900/50 backdrop-blur-xl py-10 px-7 shadow-2xl rounded-2xl border border-purple-400/20 hover:shadow-2xl transition-shadow">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {error && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-md text-sm">
+              <div className="bg-red-500/20 dark:bg-red-900/30 border border-red-400/50 text-red-200 px-5 py-4 rounded-lg text-sm font-medium">
                 {error}
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                label="First Name"
-                {...register('firstName')}
-                error={errors.firstName?.message}
-              />
-              <Input
-                label="Last Name"
-                {...register('lastName')}
-                error={errors.lastName?.message}
-              />
+            {/* Name Fields */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-2">
+                  <User className="h-4 w-4 text-purple-400" />
+                  <label className="text-white font-semibold text-xs">First Name</label>
+                </div>
+                <Input
+                  placeholder="John"
+                  {...register('firstName')}
+                  error={errors.firstName?.message}
+                  className="bg-white/5 border-purple-400/30 text-white placeholder:text-white/40 text-sm"
+                />
+              </div>
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-2">
+                  <User className="h-4 w-4 text-purple-400" />
+                  <label className="text-white font-semibold text-xs">Last Name</label>
+                </div>
+                <Input
+                  placeholder="Doe"
+                  {...register('lastName')}
+                  error={errors.lastName?.message}
+                  className="bg-white/5 border-purple-400/30 text-white placeholder:text-white/40 text-sm"
+                />
+              </div>
             </div>
 
-            <Input
-              label="Email Address"
-              type="email"
-              autoComplete="email"
-              {...register('email')}
-              error={errors.email?.message}
-            />
-
+            {/* Email Field */}
             <div className="relative">
+              <div className="flex items-center gap-3 mb-2">
+                <Mail className="h-4 w-4 text-purple-400" />
+                <label className="text-white font-semibold text-sm">Email Address</label>
+              </div>
               <Input
-                label="Password"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="new-password"
-                {...register('password')}
-                error={errors.password?.message}
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                {...register('email')}
+                error={errors.email?.message}
+                className="bg-white/5 border-purple-400/30 text-white placeholder:text-white/40"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-9 text-primary-400 hover:text-primary-600"
-              >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </button>
             </div>
 
+            {/* Password Field */}
             <div className="relative">
-              <Input
-                label="Confirm Password"
-                type={showConfirmPassword ? 'text' : 'password'}
-                autoComplete="new-password"
-                {...register('confirmPassword')}
-                error={errors.confirmPassword?.message}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-9 text-primary-400 hover:text-primary-600"
-              >
-                {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </button>
+              <div className="flex items-center gap-3 mb-2">
+                <Lock className="h-4 w-4 text-purple-400" />
+                <label className="text-white font-semibold text-sm">Password</label>
+              </div>
+              <div className="relative">
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  placeholder="••••••••"
+                  {...register('password')}
+                  error={errors.password?.message}
+                  className="bg-white/5 border-purple-400/30 text-white placeholder:text-white/40"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-4 text-purple-400 hover:text-purple-300 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-start">
-              <div className="flex items-center h-5">
+            {/* Confirm Password Field */}
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-2">
+                <CheckCircle className="h-4 w-4 text-purple-400" />
+                <label className="text-white font-semibold text-sm">Confirm Password</label>
+              </div>
+              <div className="relative">
+                <Input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  placeholder="••••••••"
+                  {...register('confirmPassword')}
+                  error={errors.confirmPassword?.message}
+                  className="bg-white/5 border-purple-400/30 text-white placeholder:text-white/40"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-4 top-4 text-purple-400 hover:text-purple-300 transition-colors"
+                >
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Terms Checkbox */}
+            <div className="flex items-start space-x-3 p-4 bg-purple-500/10 rounded-lg border border-purple-400/30">
+              <div className="flex items-center h-5 mt-0.5">
                 <input
                   id="agree"
                   name="agree"
                   type="checkbox"
                   required
-                  className="h-4 w-4 text-accent-600 focus:ring-accent-500 border-primary-300 rounded"
+                  className="h-5 w-5 text-purple-500 focus:ring-2 focus:ring-purple-400 border-purple-300/50 rounded cursor-pointer bg-white/10"
                 />
               </div>
-              <div className="ml-3 text-sm">
-                <label htmlFor="agree" className="text-primary-700 dark:text-neutral-300">
+              <div className="text-sm">
+                <label htmlFor="agree" className="text-purple-200 font-medium">
                   I agree to the{' '}
-                  <Link href="/terms" className="text-accent-500 hover:text-accent-600">
+                  <Link href="/terms" className="text-purple-400 hover:text-purple-300 font-bold transition-colors">
                     Terms of Service
                   </Link>{' '}
                   and{' '}
-                  <Link href="/privacy" className="text-accent-500 hover:text-accent-600">
+                  <Link href="/privacy" className="text-purple-400 hover:text-purple-300 font-bold transition-colors">
                     Privacy Policy
                   </Link>
                 </label>
@@ -167,14 +211,54 @@ export function Signup() {
 
             <Button
               type="submit"
-              className="w-full"
-              size="lg"
+              className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold py-3 text-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
               disabled={isLoading}
             >
-              {isLoading ? 'Creating account...' : 'Create Account'}
+              {isLoading ? (
+                <span className="flex items-center justify-center">
+                  <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></span>
+                  Creating account...
+                </span>
+              ) : (
+                <span className="flex items-center justify-center">
+                  Create Account
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </span>
+              )}
             </Button>
           </form>
+
+          {/* Benefits Section */}
+          <div className="mt-8 space-y-3 pt-8 border-t border-purple-400/20">
+            <div className="flex items-center gap-2 text-xs text-purple-200 hover:text-purple-100 transition-colors">
+              <span className="text-lg">🎁</span>
+              <span>Exclusive member discounts & rewards</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-purple-200 hover:text-purple-100 transition-colors">
+              <span className="text-lg">⭐</span>
+              <span>Early access to new fragrances</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-purple-200 hover:text-purple-100 transition-colors">
+              <span className="text-lg">🎯</span>
+              <span>Personalized recommendations</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-purple-200 hover:text-purple-100 transition-colors">
+              <span className="text-lg">📦</span>
+              <span>Free shipping on all orders</span>
+            </div>
+          </div>
         </div>
+
+        <p className="text-center text-xs text-purple-300 mt-8">
+          By creating an account, you agree to our{' '}
+          <Link href="/terms" className="text-purple-400 hover:text-purple-300 hover:underline transition-colors">
+            Terms of Service
+          </Link>{' '}
+          and{' '}
+          <Link href="/privacy" className="text-purple-400 hover:text-purple-300 hover:underline transition-colors">
+            Privacy Policy
+          </Link>
+        </p>
       </div>
     </div>
   );

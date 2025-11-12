@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useMemo, useEffect } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { ProductCard } from '@/components/commerce/ProductCard';
 import type { Product } from '@/types';
 import { getProducts } from '@/lib/supabase/products';
@@ -9,12 +9,34 @@ import { useAuthStore } from '@/stores/auth';
 // Supabase-backed products state
 const initialProducts: Product[] = [];
 
+// Category mapping
+const CATEGORY_TITLES: Record<string, string> = {
+  men: "Men's Fragrances",
+  women: "Women's Fragrances",
+};
+
+const VALID_CATEGORIES = ['men', 'women'];
+
 export function Collections() {
+  const params = useParams();
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loading, setLoading] = useState<boolean>(true);
   const { user } = useAuthStore();
 
-  const categoryTitle = "Men's Fragrances";
+  // Get category from URL parameters
+  const category = (params.category as string)?.toLowerCase() || 'men';
+  const categoryTitle = CATEGORY_TITLES[category] || "Fragrances";
+  const categoryDescription = category === 'men' 
+    ? 'Bold and sophisticated fragrances for the modern man'
+    : 'Elegant and captivating scents for every occasion';
+
+  // Validate category - redirect to /collections/men if invalid
+  useEffect(() => {
+    if (!VALID_CATEGORIES.includes(category)) {
+      router.replace('/collections/men');
+    }
+  }, [category, router]);
 
   // Map Supabase product row into app Product type
   function mapRowToProduct(row: any): Product {
@@ -26,7 +48,7 @@ export function Collections() {
       price: Number(row.price ?? 0),
       originalPrice: row.original_price ?? undefined,
       images: Array.isArray(row.images) ? row.images : [],
-      category: (row.category || 'men') as Product['category'],
+      category: (row.category || category) as Product['category'],
       type: (row.type || 'EDP') as Product['type'],
       notes: {
         top: Array.isArray(notes.top) ? notes.top : [],
@@ -44,7 +66,7 @@ export function Collections() {
     };
   }
 
-  // Fetch Men's products from Supabase on component mount
+  // Fetch products by category from Supabase
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
@@ -52,7 +74,7 @@ export function Collections() {
       try {
         const resp = await getProducts(
           {
-            category: 'men', // Always load men's products
+            category: category, // Dynamic category
           },
           1,
           100
@@ -71,44 +93,62 @@ export function Collections() {
     return () => {
       isMounted = false;
     };
-  }, [user]); // Re-run when auth state changes to avoid post-login stalls
+  }, [category, user]); // Re-run when category or auth state changes
 
   return (
-    <div className="min-h-screen py-8 px-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-primary-950 dark:text-neutral-100 mb-4 tracking-wide">
+    <div className="min-h-screen">
+      {/* Premium Hero Section for Collections */}
+      <section className="relative py-24 px-4 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900"></div>
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-72 h-72 bg-amber-500 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="relative z-10 max-w-4xl mx-auto text-center">
+          <span className="text-amber-400 text-sm font-semibold tracking-widest">
+            {category === 'men' ? 'FOR HIM' : 'FOR HER'}
+          </span>
+          <h1 className="text-5xl md:text-6xl font-bold tracking-wider text-white mb-4 mt-4">
             {categoryTitle}
           </h1>
+          <p className="text-xl text-gray-100 tracking-wide font-light max-w-2xl mx-auto">
+            {categoryDescription}
+          </p>
         </div>
+      </section>
 
-        {/* Products Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-white dark:bg-primary-900 rounded-lg shadow-md p-4 animate-pulse">
-                <div className="aspect-square bg-neutral-200 dark:bg-neutral-700 rounded-lg mb-4"></div>
-                <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded mb-2"></div>
-                <div className="h-3 bg-neutral-200 dark:bg-neutral-700 rounded mb-2 w-3/4"></div>
-                <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-1/2"></div>
-              </div>
-            ))}
-          </div>
-        ) : products.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-primary-600 dark:text-neutral-400 mb-4">
-              No men's products found
-            </p>
-          </div>
-        )}
-      </div>
+      {/* Products Grid Section */}
+      <section className="py-20 px-4 bg-white dark:bg-slate-950">
+        <div className="max-w-7xl mx-auto">
+          {/* Products Grid */}
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="bg-gray-100 dark:bg-slate-900 rounded-lg p-4 animate-pulse">
+                  <div className="aspect-square bg-gray-200 dark:bg-slate-800 rounded-lg mb-4"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-slate-800 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-slate-800 rounded mb-2 w-3/4"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-slate-800 rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+          ) : products.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {products.map(product => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20">
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">No Products Found</h3>
+              <p className="text-slate-600 dark:text-gray-300">
+                We couldn't find any products in this category
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

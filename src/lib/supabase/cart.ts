@@ -8,6 +8,7 @@ export interface CartItemWithProduct {
   user_id: string
   product_id: string
   quantity: number
+  selected_size: string
   product_name: string
   product_price: number
   product_images: string[]
@@ -31,6 +32,7 @@ export async function getCartItems(userId: string): Promise<CartItemWithProduct[
     user_id: item.user_id || '',
     product_id: item.product_id || '',
     quantity: item.quantity || 0,
+    selected_size: item.selected_size || '100ml',
     product_name: item.product_name || '',
     product_price: item.product_price || 0,
     product_images: item.product_images || [],
@@ -38,12 +40,18 @@ export async function getCartItems(userId: string): Promise<CartItemWithProduct[
   }))
 }
 
-// Add item to cart or update quantity if exists
-export async function addToCart(userId: string, productId: string, quantity: number = 1): Promise<boolean> {
-  const { error } = await supabase.rpc('upsert_cart_item', {
+// Add item to cart or update quantity if exists (with size support)
+export async function addToCart(
+  userId: string, 
+  productId: string, 
+  quantity: number = 1,
+  selectedSize: string = '100ml'
+): Promise<boolean> {
+  const { error } = await supabase.rpc('upsert_cart_item_with_size', {
     p_user_id: userId,
     p_product_id: productId,
-    p_quantity: quantity
+    p_quantity: quantity,
+    p_selected_size: selectedSize
   })
 
   if (error) {
@@ -53,11 +61,16 @@ export async function addToCart(userId: string, productId: string, quantity: num
   return true;
 }
 
-// Remove item from cart
-export async function removeFromCart(userId: string, productId: string): Promise<boolean> {
-  const { error } = await supabase.rpc('remove_cart_item', {
+// Remove item from cart (with size support)
+export async function removeFromCart(
+  userId: string, 
+  productId: string,
+  selectedSize: string = '100ml'
+): Promise<boolean> {
+  const { error } = await supabase.rpc('remove_cart_item_with_size', {
     p_user_id: userId,
-    p_product_id: productId
+    p_product_id: productId,
+    p_selected_size: selectedSize
   })
 
   if (error) {
@@ -67,21 +80,23 @@ export async function removeFromCart(userId: string, productId: string): Promise
   return true;
 }
 
-// Update item quantity in cart
+// Update item quantity in cart (with size support)
 export async function updateCartItemQuantity(
   userId: string, 
   productId: string, 
-  quantity: number
+  quantity: number,
+  selectedSize: string = '100ml'
 ): Promise<boolean> {
   if (quantity <= 0) {
-    await removeFromCart(userId, productId)
+    await removeFromCart(userId, productId, selectedSize)
     return true;
   }
 
-  const { error } = await supabase.rpc('set_cart_item_quantity', {
+  const { error } = await supabase.rpc('set_cart_item_quantity_with_size', {
     p_user_id: userId,
     p_product_id: productId,
-    p_quantity: quantity
+    p_quantity: quantity,
+    p_selected_size: selectedSize
   })
 
   if (error) {
@@ -221,5 +236,31 @@ export async function validateCartItems(userId: string): Promise<{
   return {
     valid: issues.length === 0,
     issues
+  }
+}
+
+// Calculate cart total with promotions
+export interface CartTotals {
+  subtotal: number
+  discount: number
+  total: number
+  promotion_text: string | null
+}
+
+export async function calculateCartTotal(userId: string): Promise<CartTotals> {
+  try {
+    const { data, error } = await supabase.rpc('calculate_cart_total' as any, {
+      p_user_id: userId
+    })
+
+    if (error) {
+      console.error('Error calculating cart total:', error)
+      return { subtotal: 0, discount: 0, total: 0, promotion_text: null }
+    }
+
+    return (data && data[0]) || { subtotal: 0, discount: 0, total: 0, promotion_text: null }
+  } catch (error) {
+    console.error('Error calculating cart total:', error)
+    return { subtotal: 0, discount: 0, total: 0, promotion_text: null }
   }
 }

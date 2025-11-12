@@ -18,6 +18,15 @@ import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
+// Helper function to get user initials
+const getInitials = (email: string): string => {
+  const parts = email.split('@')[0].split(/[._-]/);
+  if (parts.length >= 2) {
+    return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+  }
+  return email.substring(0, 2).toUpperCase();
+};
+
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCollectionsOpen, setIsCollectionsOpen] = useState(false);
@@ -32,15 +41,12 @@ export function Navbar() {
   const collections = [
     { name: "Men's", slug: 'men' },
     { name: "Women's", slug: 'women' },
-    { name: 'Unisex', slug: 'unisex' },
-    { name: 'Inspired Perfumes', slug: 'inspired' },
-    { name: 'Our Creations', slug: 'creations' },
   ];
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/collections/all?search=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(`/collections/men?search=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
     }
   };
@@ -51,7 +57,7 @@ export function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-40 bg-neutral-100 dark:bg-primary-950 border-b border-primary-200 dark:border-primary-800">
+    <nav className="sticky top-0 z-40 bg-white dark:bg-slate-950 border-b border-gray-200 dark:border-slate-800 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Mobile menu button */}
@@ -60,6 +66,7 @@ export function Navbar() {
               variant="ghost"
               size="sm"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-slate-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
@@ -69,9 +76,11 @@ export function Navbar() {
           <div className="flex-shrink-0">
             <Link 
               href="/" 
-              className="text-2xl font-bold tracking-widest text-primary-950 dark:text-neutral-100 hover:text-accent-500 transition-colors"
+              className="hover:opacity-80 transition-opacity group"
             >
-              APEX
+              <span className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 bg-clip-text text-transparent hover:from-purple-300 hover:to-purple-700 transition-all duration-300">
+                AURA
+              </span>
             </Link>
           </div>
 
@@ -81,20 +90,20 @@ export function Navbar() {
             <div className="relative">
               <Button
                 variant="ghost"
-                className="flex items-center space-x-1"
+                className="flex items-center space-x-1 text-slate-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 font-medium transition-colors"
                 onClick={() => setIsCollectionsOpen(!isCollectionsOpen)}
               >
                 <span>Collections</span>
-                <ChevronDown className="h-4 w-4" />
+                <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${isCollectionsOpen ? 'rotate-180' : ''}`} />
               </Button>
               
               {isCollectionsOpen && (
-                <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-primary-900 rounded-md shadow-lg border border-primary-200 dark:border-primary-800 py-1">
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-lg shadow-xl border border-gray-200 dark:border-slate-700 py-2 z-50">
                   {collections.map(collection => (
                     <Link
                       key={collection.slug}
                       href={`/collections/${collection.slug}`}
-                      className="block px-4 py-2 text-sm text-primary-900 dark:text-neutral-100 hover:bg-primary-50 dark:hover:bg-primary-800 transition-colors"
+                      className="block px-4 py-2.5 text-sm text-slate-700 dark:text-gray-300 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:text-amber-600 dark:hover:text-amber-400 transition-colors font-medium"
                       onClick={() => setIsCollectionsOpen(false)}
                     >
                       {collection.name}
@@ -105,28 +114,29 @@ export function Navbar() {
             </div>
 
             {/* Search */}
-            <form onSubmit={handleSearch} className="relative">
+            <form onSubmit={handleSearch} className="relative hidden lg:block">
               <div className="flex items-center">
                 <Input
                   type="search"
                   placeholder="Search fragrances..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-64 pl-10"
+                  className="w-64 pl-10 border-gray-300 dark:border-slate-700 focus:border-amber-400 focus:ring-amber-400 rounded-lg"
                 />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-primary-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               </div>
             </form>
           </div>
 
           {/* Right side buttons */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 md:space-x-4">
             {/* Theme toggle */}
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleTheme}
-              className="p-2"
+              className="p-2 text-slate-700 dark:text-gray-300 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
+              title="Toggle dark mode"
             >
               {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
             </Button>
@@ -136,26 +146,37 @@ export function Navbar() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="p-2"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               >
-                <User className="h-5 w-5" />
+                {user ? (
+                  // User avatar circle with initials
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm shadow-md hover:shadow-lg transition-shadow">
+                    {getInitials(user.email || 'User')}
+                  </div>
+                ) : (
+                  <User className="h-5 w-5 text-slate-700 dark:text-gray-300" />
+                )}
               </Button>
               
               {isUserMenuOpen && (
-                <div className="absolute top-full right-0 mt-1 w-48 bg-white dark:bg-primary-900 rounded-md shadow-lg border border-primary-200 dark:border-primary-800 py-1">
+                <div className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-lg shadow-xl border border-gray-200 dark:border-slate-700 py-2 z-50">
                   {user ? (
                     <>
+                      <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20">
+                        <p className="text-xs uppercase tracking-widest text-amber-700 dark:text-amber-400 font-semibold">Account</p>
+                        <p className="text-sm font-medium text-slate-900 dark:text-white mt-1">{user.email}</p>
+                      </div>
                       <Link
                         href="/account"
-                        className="block px-4 py-2 text-sm text-primary-900 dark:text-neutral-100 hover:bg-primary-50 dark:hover:bg-primary-800 transition-colors"
+                        className="block px-4 py-2.5 text-sm text-slate-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-amber-600 dark:hover:text-amber-400 transition-colors font-medium"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         My Account
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className="block w-full text-left px-4 py-2 text-sm text-primary-900 dark:text-neutral-100 hover:bg-primary-50 dark:hover:bg-primary-800 transition-colors"
+                        className="block w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-red-600 dark:hover:text-red-400 transition-colors font-medium border-t border-gray-200 dark:border-slate-700"
                       >
                         Sign Out
                       </button>
@@ -164,14 +185,14 @@ export function Navbar() {
                     <>
                       <Link
                         href="/auth/login"
-                        className="block px-4 py-2 text-sm text-primary-900 dark:text-neutral-100 hover:bg-primary-50 dark:hover:bg-primary-800 transition-colors"
+                        className="block px-4 py-2.5 text-sm text-slate-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-amber-600 dark:hover:text-amber-400 transition-colors font-medium"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         Sign In
                       </Link>
                       <Link
                         href="/auth/signup"
-                        className="block px-4 py-2 text-sm text-primary-900 dark:text-neutral-100 hover:bg-primary-50 dark:hover:bg-primary-800 transition-colors"
+                        className="block px-4 py-2.5 text-sm text-slate-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-amber-600 dark:hover:text-amber-400 transition-colors font-medium border-t border-gray-200 dark:border-slate-700"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         Sign Up
@@ -186,12 +207,13 @@ export function Navbar() {
             <Button
               variant="ghost"
               size="sm"
-              className="p-2 relative"
+              className="p-2 relative text-slate-700 dark:text-gray-300 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
               onClick={openCart}
+              title="Open shopping cart"
             >
               <ShoppingBag className="h-5 w-5" />
               {getItemCount() > 0 && (
-                <span className="absolute -top-1 -right-1 bg-accent-500 text-primary-950 text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                <span className="absolute -top-1 -right-1 bg-gradient-to-br from-amber-500 to-amber-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-md">
                   {getItemCount()}
                 </span>
               )}
@@ -201,33 +223,32 @@ export function Navbar() {
 
         {/* Mobile menu */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-primary-200 dark:border-primary-800 py-4">
-            <div className="space-y-4">
-              {/* Mobile search */}
-              <form onSubmit={handleSearch}>
-                <Input
-                  type="search"
-                  placeholder="Search fragrances..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </form>
+          <div className="md:hidden border-t border-gray-200 dark:border-slate-800 py-4 space-y-4">
+            {/* Mobile search */}
+            <form onSubmit={handleSearch} className="px-2">
+              <Input
+                type="search"
+                placeholder="Search fragrances..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full border-gray-300 dark:border-slate-700 focus:border-amber-400 focus:ring-amber-400 rounded-lg"
+              />
+            </form>
 
-              {/* Mobile collections */}
-              <div>
-                <h3 className="font-medium text-primary-900 dark:text-neutral-100 mb-2">Collections</h3>
-                <div className="space-y-2">
-                  {collections.map(collection => (
-                    <Link
-                      key={collection.slug}
-                      href={`/collections/${collection.slug}`}
-                      className="block text-sm text-primary-700 dark:text-neutral-300 hover:text-accent-500 transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      {collection.name}
-                    </Link>
-                  ))}
-                </div>
+            {/* Mobile collections */}
+            <div className="px-2">
+              <h3 className="font-semibold text-slate-900 dark:text-white mb-2 text-sm uppercase tracking-widest text-amber-600 dark:text-amber-400">Collections</h3>
+              <div className="space-y-2">
+                {collections.map(collection => (
+                  <Link
+                    key={collection.slug}
+                    href={`/collections/${collection.slug}`}
+                    className="block text-sm text-slate-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 font-medium transition-colors py-1.5"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {collection.name}
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
