@@ -3,8 +3,7 @@ import type { User } from '@supabase/supabase-js'
 
 export interface AuthUser extends User {
   profile?: {
-    first_name: string | null
-    last_name: string | null
+    full_name: string | null
     avatar_url: string | null
   }
 }
@@ -87,7 +86,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   // Fetch user profile
   const { data: profile } = await supabase
     .from('profiles')
-    .select('first_name, last_name, avatar_url')
+    .select('full_name, avatar_url')
     .eq('id', user.id)
     .single()
 
@@ -99,12 +98,23 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 
 // Update user profile
 export async function updateProfile(userId: string, updates: UpdateProfileData) {
+  const updateData: any = {
+    updated_at: new Date().toISOString(),
+  }
+
+  if (updates.first_name !== undefined || updates.last_name !== undefined) {
+    const firstName = updates.first_name ?? ''
+    const lastName = updates.last_name ?? ''
+    updateData.full_name = `${firstName} ${lastName}`.trim()
+  }
+
+  if (updates.avatar_url !== undefined) {
+    updateData.avatar_url = updates.avatar_url
+  }
+
   const { data, error } = await supabase
     .from('profiles')
-    .update({
-      ...updates,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updateData)
     .eq('id', userId)
     .select()
     .single()

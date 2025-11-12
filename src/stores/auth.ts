@@ -15,8 +15,10 @@ interface AuthState {
 
 // Convert Supabase user to app user format
 function convertToAppUser(authUser: any): User {
-  const firstName = authUser.profile?.first_name ?? ''
-  const lastName = authUser.profile?.last_name ?? ''
+  const fullName = authUser.profile?.full_name ?? ''
+  const nameParts = fullName.split(' ')
+  const firstName = nameParts[0] ?? ''
+  const lastName = nameParts.slice(1).join(' ') ?? ''
   return {
     id: authUser.id,
     email: authUser.email,
