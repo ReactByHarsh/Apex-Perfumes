@@ -14,9 +14,9 @@ import { useAuthStore } from '@/stores/auth';
 interface CartState {
   items: CartItem[];
   isOpen: boolean;
-  addItem: (product: Product, quantity?: number) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addItem: (product: Product, quantity?: number, selectedSize?: string) => void;
+  removeItem: (productId: string, selectedSize?: string) => void;
+  updateQuantity: (productId: string, quantity: number, selectedSize?: string) => void;
   clearCart: () => void;
   openCart: () => void;
   closeCart: () => void;
@@ -34,27 +34,34 @@ export const useCartStore = create<CartState>((set, get) => ({
   items: [],
   isOpen: false,
 
-  addItem: async (product: Product, quantity = 1) => {
+  addItem: async (product: Product, quantity = 1, selectedSize = '100ml') => {
     const user = useAuthStore.getState().user;
     
     if (user) {
-      const success = await addToCart(user.id, product.id, quantity);
+      const success = await addToCart(user.id, product.id, quantity, selectedSize);
       if (success) {
         await get().loadCart();
       }
     } else {
       const currentItems = get().items;
-      const existingItem = currentItems.find(item => item.product.id === product.id);
+      const existingItem = currentItems.find(
+        item => item.product.id === product.id && item.selectedSize === selectedSize
+      );
 
       let newItems;
       if (existingItem) {
         newItems = currentItems.map(item =>
-          item.product.id === product.id
+          item.product.id === product.id && item.selectedSize === selectedSize
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       } else {
-        newItems = [...currentItems, { id: product.id, product, quantity }];
+        newItems = [...currentItems, { 
+          id: `${product.id}-${selectedSize}`, 
+          product, 
+          quantity,
+          selectedSize
+        }];
       }
 
       set({ items: newItems });
@@ -62,37 +69,39 @@ export const useCartStore = create<CartState>((set, get) => ({
     }
   },
 
-  removeItem: async (productId: string) => {
+  removeItem: async (productId: string, selectedSize = '100ml') => {
     const user = useAuthStore.getState().user;
     
     if (user) {
-      const success = await removeFromCart(user.id, productId);
+      const success = await removeFromCart(user.id, productId, selectedSize);
       if (success) {
         await get().loadCart();
       }
     } else {
-      const newItems = get().items.filter(item => item.product.id !== productId);
+      const newItems = get().items.filter(
+        item => !(item.product.id === productId && item.selectedSize === selectedSize)
+      );
       set({ items: newItems });
       storage.set(CART_KEY, newItems);
     }
   },
 
-  updateQuantity: async (productId: string, quantity: number) => {
+  updateQuantity: async (productId: string, quantity: number, selectedSize = '100ml') => {
     if (quantity <= 0) {
-      await get().removeItem(productId);
+      await get().removeItem(productId, selectedSize);
       return;
     }
 
     const user = useAuthStore.getState().user;
     
     if (user) {
-      const success = await updateCartItemQuantity(user.id, productId, quantity);
+      const success = await updateCartItemQuantity(user.id, productId, quantity, selectedSize);
       if (success) {
         await get().loadCart();
       }
     } else {
       const newItems = get().items.map(item =>
-        item.product.id === productId
+        item.product.id === productId && item.selectedSize === selectedSize
           ? { ...item, quantity }
           : item
       );
@@ -142,8 +151,9 @@ export const useCartStore = create<CartState>((set, get) => ({
       const cartItems = await getCartItems(user.id);
       if (cartItems) {
         const mapped = cartItems.map(ci => ({
-          id: ci.id,
+          id: `${ci.product_id}-${ci.selected_size}`,
           quantity: ci.quantity,
+          selectedSize: ci.selected_size,
           product: {
             id: ci.product_id,
             name: ci.product_name,
@@ -174,8 +184,9 @@ export const useCartStore = create<CartState>((set, get) => ({
           const updatedCartItems = await getCartItems(user.id);
           if (updatedCartItems) {
             const updatedMapped = updatedCartItems.map(ci => ({
-              id: ci.id,
+              id: `${ci.product_id}-${ci.selected_size}`,
               quantity: ci.quantity,
+              selectedSize: ci.selected_size,
               product: {
                 id: ci.product_id,
                 name: ci.product_name,

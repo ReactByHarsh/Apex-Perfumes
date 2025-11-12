@@ -19,7 +19,7 @@ export function Privacy() {
               Introduction
             </h2>
             <p className="mb-4">
-              APEX Fragrances ("we," "our," or "us") respects your privacy and is committed to protecting 
+              Aura Essence ("we," "our," or "us") respects your privacy and is committed to protecting 
               your personal information. This Privacy Policy explains how we collect, use, disclose, and 
               safeguard your information when you visit our website and make purchases from us.
             </p>
@@ -168,7 +168,7 @@ export function Privacy() {
               If you have any questions about this Privacy Policy or our privacy practices, please contact us:
             </p>
             <div className="bg-neutral-50 dark:bg-primary-900 p-4 rounded-lg">
-              <p className="mb-2">Email: privacy@apex-fragrances.com</p>
+              <p className="mb-2">Email: privacy@aura-essence.com</p>
               <p className="mb-2">Phone: +1 (555) 123-4567</p>
               <p>Address: 123 Luxury Lane, Beverly Hills, CA 90210</p>
             </div>

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, Shield, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -34,7 +34,7 @@ export function Login() {
       if (success) {
         showToast({
           title: 'Signed in',
-          description: 'Welcome back to APEX!',
+          description: 'Welcome back to Aura Essence!',
           variant: 'success'
         });
         router.push('/');
@@ -57,68 +57,88 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-slate-900 to-purple-900 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 py-12 px-4 relative overflow-hidden">
+      {/* Decorative Blobs */}
+      <div className="absolute top-10 left-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl"></div>
+      
+      <div className="relative z-10 max-w-md w-full">
+        <div className="text-center mb-10">
           <Link
             href="/"
-            className="text-3xl font-bold tracking-widest text-primary-950 dark:text-neutral-100 hover:text-accent-500 transition-colors"
+            className="text-5xl font-bold tracking-widest text-white hover:text-purple-300 transition-colors inline-block mb-8"
           >
-            APEX
+            AURA
           </Link>
-          <h2 className="mt-6 text-2xl font-bold text-primary-950 dark:text-neutral-100">
-            Sign in to your account
+          <h2 className="text-4xl font-bold text-white mb-3">
+            Welcome Back
           </h2>
-          <p className="mt-2 text-primary-600 dark:text-neutral-400">
+          <p className="text-purple-200 text-lg">
             Don't have an account?{' '}
-            <Link href="/auth/signup" className="text-accent-500 hover:text-accent-600 transition-colors">
+            <Link href="/auth/signup" className="text-purple-400 hover:text-purple-300 font-bold transition-colors">
               Sign up
             </Link>
           </p>
         </div>
 
-        <div className="bg-white dark:bg-primary-900 py-8 px-6 shadow-lg rounded-lg border border-primary-200 dark:border-primary-800">
+        <div className="bg-white/10 dark:bg-slate-900/50 backdrop-blur-xl py-10 px-7 shadow-2xl rounded-2xl border border-purple-400/20 hover:shadow-2xl transition-shadow">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {error && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-md text-sm">
+              <div className="bg-red-500/20 dark:bg-red-900/30 border border-red-400/50 text-red-200 px-5 py-4 rounded-lg text-sm font-medium">
                 {error}
               </div>
             )}
 
-            <Input
-              label="Email Address"
-              type="email"
-              autoComplete="email"
-              {...register('email')}
-              error={errors.email?.message}
-            />
-
+            {/* Email Field */}
             <div className="relative">
+              <div className="flex items-center gap-3 mb-2">
+                <Mail className="h-5 w-5 text-purple-400" />
+                <label className="text-white font-semibold text-sm">Email Address</label>
+              </div>
               <Input
-                label="Password"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="current-password"
-                {...register('password')}
-                error={errors.password?.message}
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                {...register('email')}
+                error={errors.email?.message}
+                className="bg-white/5 border-purple-400/30 text-white placeholder:text-white/40"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-9 text-primary-400 hover:text-primary-600"
-              >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </button>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
+            {/* Password Field */}
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-2">
+                <Lock className="h-5 w-5 text-purple-400" />
+                <label className="text-white font-semibold text-sm">Password</label>
+              </div>
+              <div className="relative">
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  {...register('password')}
+                  error={errors.password?.message}
+                  className="bg-white/5 border-purple-400/30 text-white placeholder:text-white/40"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-4 text-purple-400 hover:text-purple-300 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center space-x-3">
                 <input
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 text-accent-600 focus:ring-accent-500 border-primary-300 rounded"
+                  className="h-5 w-5 text-purple-500 focus:ring-2 focus:ring-purple-400 border-purple-300/50 dark:border-purple-700 rounded cursor-pointer bg-white/10"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-primary-900 dark:text-neutral-100">
+                <label htmlFor="remember-me" className="text-sm text-purple-200 font-medium hover:text-purple-100 transition-colors cursor-pointer">
                   Remember me
                 </label>
               </div>
@@ -126,34 +146,70 @@ export function Login() {
               <div className="text-sm">
                 <Link
                   href="/auth/forgot-password"
-                  className="text-accent-500 hover:text-accent-600 transition-colors"
+                  className="text-purple-400 hover:text-purple-300 font-semibold transition-colors"
                 >
-                  Forgot your password?
+                  Forgot password?
                 </Link>
               </div>
             </div>
 
             <Button
               type="submit"
-              className="w-full"
-              size="lg"
+              className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold py-3 text-lg shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
               disabled={isLoading}
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+              {isLoading ? (
+                <span className="flex items-center justify-center">
+                  <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></span>
+                  Signing in...
+                </span>
+              ) : (
+                <span className="flex items-center justify-center">
+                  Sign in
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </span>
+              )}
             </Button>
           </form>
 
-          {/* Demo Account Info */}
-          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md">
-            <p className="text-sm text-blue-800 dark:text-blue-200 mb-2">
-              <strong>Demo Account:</strong>
+          {/* Demo Account Info - Enhanced */}
+          <div className="mt-8 p-5 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl border border-blue-400/30 hover:shadow-lg transition-all">
+            <p className="text-sm text-blue-200 mb-3 font-bold tracking-wider uppercase flex items-center gap-2">
+              <span className="text-lg">🧪</span> Try Demo Account:
             </p>
-            <p className="text-sm text-blue-700 dark:text-blue-300">
-              Email: demo@apex.com<br />
-              Password: password123
-            </p>
+            <div className="space-y-2 font-mono text-sm">
+              <div className="text-blue-100 bg-black/20 p-2 rounded border border-blue-400/30">
+                Email: <span className="font-semibold text-blue-300">demo@apex.com</span>
+              </div>
+              <div className="text-blue-100 bg-black/20 p-2 rounded border border-blue-400/30">
+                Password: <span className="font-semibold text-blue-300">password123</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Trust Indicators */}
+          <div className="mt-6 grid grid-cols-2 gap-3 pt-6 border-t border-purple-400/20">
+            <div className="flex items-center gap-2 text-xs text-purple-200">
+              <Shield className="h-4 w-4 text-purple-400" />
+              <span>Secure Login</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-purple-200">
+              <span className="text-lg">✓</span>
+              <span>Verified Site</span>
+            </div>
           </div>
         </div>
+
+        <p className="text-center text-xs text-purple-300 mt-8 space-x-1">
+          <span>By signing in, you agree to our</span>
+          <Link href="/terms" className="text-purple-400 hover:text-purple-300 hover:underline transition-colors">
+            Terms of Service
+          </Link>
+          <span>and</span>
+          <Link href="/privacy" className="text-purple-400 hover:text-purple-300 hover:underline transition-colors">
+            Privacy Policy
+          </Link>
+        </p>
       </div>
     </div>
   );

@@ -144,7 +144,7 @@ export function Contact() {
                     </h3>
                     <p className="text-primary-700 dark:text-neutral-300">
                       +1 (555) 123-4567<br />
-                      Toll-free: 1-800-APEX-123
+                      Toll-free: 1-800-AURA-123
                     </p>
                   </div>
                 </div>
@@ -158,8 +158,8 @@ export function Contact() {
                       Email us
                     </h3>
                     <p className="text-primary-700 dark:text-neutral-300">
-                      hello@apex-fragrances.com<br />
-                      support@apex-fragrances.com
+                      hello@aura-essence.com<br />
+                      support@aura-essence.com
                     </p>
                   </div>
                 </div>

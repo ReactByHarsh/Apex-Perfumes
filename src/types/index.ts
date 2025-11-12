@@ -26,6 +26,7 @@ export interface CartItem {
   id: string;
   product: Product;
   quantity: number;
+  selectedSize?: string; // e.g., '50ml', '100ml'
 }
 
 export interface User {
