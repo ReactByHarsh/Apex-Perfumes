@@ -23,33 +23,55 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     const init = async () => {
-      await useAuthStore.getState().loadUser();
-      await useCartStore.getState().loadCart();
-      await useWishlistStore.getState().loadWishlist();
+      try {
+        console.log('🔄 Initializing auth and cart...');
+        await useAuthStore.getState().loadUser();
+        await useCartStore.getState().loadCart();
+        await useWishlistStore.getState().loadWishlist();
+        console.log('✅ Initialization complete');
+      } catch (error) {
+        console.error('❌ Initialization failed:', error);
+      }
     };
     init();
 
     const { data: { subscription } } = onAuthStateChange(async (authUser) => {
-      await useAuthStore.getState().loadUser();
+      try {
+        console.log('🔄 Auth state changed:', authUser ? 'User signed in' : 'User signed out');
+        
+        // Load user state first
+        await useAuthStore.getState().loadUser();
 
-      if (authUser) {
-        const localItems = storage.get('apex-cart') || [];
-        if (Array.isArray(localItems) && localItems.length > 0) {
-          const itemsToSync = localItems.map((item: any) => ({
-            productId: item.product?.id ?? item.id,
-            quantity: item.quantity ?? 1,
-          }));
-          try {
-            await syncCartFromLocalStorage(authUser.id, itemsToSync);
-            storage.remove('apex-cart');
-          } catch (e) {
-            console.error('Failed syncing local cart to Supabase:', e);
+        if (authUser) {
+          console.log('👤 User authenticated, syncing cart...');
+          // Sync local cart to Supabase if user was previously a guest
+          const localItems = storage.get('apex-cart') || [];
+          if (Array.isArray(localItems) && localItems.length > 0) {
+            console.log(`📦 Found ${localItems.length} local cart items to sync`);
+            const itemsToSync = localItems.map((item: any) => ({
+              productId: item.product?.id ?? item.id,
+              quantity: item.quantity ?? 1,
+            }));
+            
+            try {
+              await syncCartFromLocalStorage(authUser.id, itemsToSync);
+              storage.remove('apex-cart');
+              console.log('✅ Local cart synced to Supabase');
+            } catch (e) {
+              console.error('❌ Failed syncing local cart to Supabase:', e);
+              // Don't remove local cart if sync fails
+            }
           }
         }
-      }
 
-      await useCartStore.getState().loadCart();
-      await useWishlistStore.getState().loadWishlist();
+        // Always reload cart and wishlist after auth state change
+        console.log('🔄 Reloading cart and wishlist...');
+        await useCartStore.getState().loadCart();
+        await useWishlistStore.getState().loadWishlist();
+        console.log('✅ Cart and wishlist reloaded');
+      } catch (error) {
+        console.error('❌ Auth state change handler failed:', error);
+      }
     });
 
     return () => {

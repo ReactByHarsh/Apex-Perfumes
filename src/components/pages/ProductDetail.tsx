@@ -144,10 +144,16 @@ export function ProductDetail() {
     );
   }
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (product) {
-      const appProduct = convertSupabaseProduct(product);
-      addItem(appProduct, quantity, selectedSize);
+      try {
+        const appProduct = convertSupabaseProduct(product);
+        await addItem(appProduct, quantity, selectedSize);
+        console.log('✅ Added to cart:', product.name);
+      } catch (error) {
+        console.error('❌ Error adding to cart:', error);
+        // Could add a toast notification here for user feedback
+      }
     }
   };
 

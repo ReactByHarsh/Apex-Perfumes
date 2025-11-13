@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { User } from '@/types';
 import { loginSchema, signupSchema } from '@/lib/schema';
 import { signIn, signUp, signOut, getCurrentUser, onAuthStateChange } from '@/lib/supabase/auth';
+import { supabase } from '@/lib/supabase/client';
 
 interface AuthState {
   user: User | null;
@@ -13,7 +14,7 @@ interface AuthState {
   loadUser: () => Promise<void>;
 }
 
-// Convert Supabase user to app user format
+// Convert Supabase user to app user format - Fixed to use correct column names
 function convertToAppUser(authUser: any): User {
   const fullName = authUser.profile?.full_name ?? ''
   const nameParts = fullName.split(' ')
@@ -65,15 +66,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       signupSchema.parse(data);
       
       const fullName = `${data.firstName} ${data.lastName}`;
-      await signUp({
+      const authUser = await signUp({
         email: data.email,
         password: data.password,
         fullName,
       });
       
-      const authUser = await getCurrentUser();
-      if (authUser) {
-        const user = convertToAppUser(authUser);
+      // Wait a bit for profile creation to complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const currentUser = await getCurrentUser();
+      if (currentUser) {
+        const user = convertToAppUser(currentUser);
         set({ user, isLoading: false });
         return true;
       }
@@ -92,13 +96,54 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   loadUser: async () => {
+    // Prevent multiple simultaneous calls
+    if (get().isLoading) {
+      return;
+    }
+
     try {
-      const authUser = await getCurrentUser();
-      if (authUser) {
-        const user = convertToAppUser(authUser);
-        set({ user, isInitialized: true });
-      } else {
+      // First get the current session/user from Supabase auth
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError);
         set({ user: null, isInitialized: true });
+        return;
+      }
+
+      if (!session?.user) {
+        set({ user: null, isInitialized: true });
+        return;
+      }
+
+      // Try to get additional user data, but don't fail if profile doesn't exist
+      try {
+        const authUser = await getCurrentUser();
+        if (authUser) {
+          const user = convertToAppUser(authUser);
+          set({ user, isInitialized: true });
+        } else {
+          // Fallback to basic user data from session
+          const user = {
+            id: session.user.id,
+            email: session.user.email || '',
+            firstName: session.user.user_metadata?.full_name?.split(' ')[0] || '',
+            lastName: session.user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '',
+            createdAt: session.user.created_at,
+          };
+          set({ user, isInitialized: true });
+        }
+      } catch (profileError) {
+        console.warn('Profile fetch failed, using session data:', profileError);
+        // Use session data as fallback
+        const user = {
+          id: session.user.id,
+          email: session.user.email || '',
+          firstName: session.user.user_metadata?.full_name?.split(' ')[0] || '',
+          lastName: session.user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '',
+          createdAt: session.user.created_at,
+        };
+        set({ user, isInitialized: true });
       }
     } catch (error) {
       console.error('Failed to load user:', error);

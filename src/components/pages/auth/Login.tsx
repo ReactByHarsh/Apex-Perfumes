@@ -173,19 +173,6 @@ export function Login() {
           </form>
 
           {/* Demo Account Info - Enhanced */}
-          <div className="mt-8 p-5 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl border border-blue-400/30 hover:shadow-lg transition-all">
-            <p className="text-sm text-blue-200 mb-3 font-bold tracking-wider uppercase flex items-center gap-2">
-              <span className="text-lg">🧪</span> Try Demo Account:
-            </p>
-            <div className="space-y-2 font-mono text-sm">
-              <div className="text-blue-100 bg-black/20 p-2 rounded border border-blue-400/30">
-                Email: <span className="font-semibold text-blue-300">demo@apex.com</span>
-              </div>
-              <div className="text-blue-100 bg-black/20 p-2 rounded border border-blue-400/30">
-                Password: <span className="font-semibold text-blue-300">password123</span>
-              </div>
-            </div>
-          </div>
 
           {/* Trust Indicators */}
           <div className="mt-6 grid grid-cols-2 gap-3 pt-6 border-t border-purple-400/20">

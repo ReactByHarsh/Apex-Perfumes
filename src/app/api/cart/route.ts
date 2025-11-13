@@ -1,22 +1,61 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase/client';
+import { getProductWithFallback, enhanceCartItemsWithProductData } from '@/lib/supabase/products-sync';
+
+// Helper function to get price by size
+function getSizePrice(selectedSize: string): number {
+  const sizePrices: Record<string, number> = {
+    '20ml': 349,
+    '50ml': 599,
+    '100ml': 799
+  };
+  return sizePrices[selectedSize] || sizePrices['100ml'];
+}
 
 export async function GET(request: NextRequest) {
   try {
-    // Get the authenticated user
+    // Debug: Check authentication
+    console.log('🔍 Cart API: Starting authentication check...');
+    
+    // Get session first
     const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
 
-    if (authError || !user) {
+    console.log('🔍 Cart API: Session result:', {
+      hasSession: !!session,
+      sessionError: sessionError?.message,
+      userId: session?.user?.id
+    });
+
+    if (sessionError) {
+      console.error('❌ Cart API: Session error:', sessionError);
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        {
+          error: 'Session error',
+          details: sessionError.message,
+          authenticated: false
+        },
         { status: 401 }
       );
     }
 
-    // Get cart items directly from the cart_items table with product info
+    if (!session?.user) {
+      console.log('❌ Cart API: No session found');
+      return NextResponse.json(
+        {
+          error: 'User not authenticated',
+          authenticated: false,
+          message: 'Please login to view your cart'
+        },
+        { status: 401 }
+      );
+    }
+    
+    console.log('✅ Cart API: User authenticated:', session.user.id);
+
+    // Get cart items directly from the cart_items table
     const { data: cartItems, error: fetchError } = await supabase
       .from('cart_items')
       .select(`
@@ -24,10 +63,9 @@ export async function GET(request: NextRequest) {
         user_id,
         product_id,
         quantity,
-        selected_size,
-        products!inner(name, images, sizes)
+        selected_size
       `)
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .order('created_at', { ascending: false });
 
     if (fetchError) {
@@ -38,22 +76,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Enhance cart items with complete product data including images
+    const enhancedItems = await enhanceCartItemsWithProductData(cartItems || []);
+
     // Transform the response and calculate prices
-    const transformedItems = (cartItems || []).map((item: any) => {
-      const product = item.products;
-      const sizes = product?.sizes || {};
+    const transformedItems = enhancedItems.map((item: any) => {
       const selectedSize = item.selected_size || '100ml';
-      const price = (sizes[selectedSize]?.price) || 799;
+      const price = getSizePrice(selectedSize);
       
       return {
         id: item.id,
         user_id: item.user_id,
         product_id: item.product_id,
-        product_name: product?.name || '',
+        product_name: item.product_name,
         product_price: price,
         quantity: item.quantity,
         selected_size: selectedSize,
-        product_images: product?.images || [],
+        product_images: item.product_images || [],
         total_price: price * item.quantity,
       };
     });
@@ -90,12 +129,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Get session first for authentication
     const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
 
-    if (authError || !user) {
+    if (sessionError || !session?.user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -123,7 +163,7 @@ export async function POST(request: NextRequest) {
           );
         }
         ({ error } = await supabase.rpc('upsert_cart_item_with_size', {
-          p_user_id: user.id,
+          p_user_id: session.user.id,
           p_product_id: productId,
           p_quantity: quantity,
           p_selected_size: selectedSize,
@@ -134,13 +174,13 @@ export async function POST(request: NextRequest) {
         if (quantity <= 0) {
           // Remove item if quantity is 0 or negative
           ({ error } = await supabase.rpc('remove_cart_item_with_size', {
-            p_user_id: user.id,
+            p_user_id: session.user.id,
             p_product_id: productId,
             p_selected_size: selectedSize,
           }));
         } else {
           ({ error } = await supabase.rpc('set_cart_item_quantity_with_size', {
-            p_user_id: user.id,
+            p_user_id: session.user.id,
             p_product_id: productId,
             p_quantity: quantity,
             p_selected_size: selectedSize,
@@ -150,7 +190,7 @@ export async function POST(request: NextRequest) {
 
       case 'remove':
         ({ error } = await supabase.rpc('remove_cart_item_with_size', {
-          p_user_id: user.id,
+          p_user_id: session.user.id,
           p_product_id: productId,
           p_selected_size: selectedSize,
         }));
@@ -158,7 +198,7 @@ export async function POST(request: NextRequest) {
 
       case 'clear':
         ({ error } = await supabase.rpc('clear_cart', {
-          p_user_id: user.id,
+          p_user_id: session.user.id,
         }));
         break;
 
@@ -185,10 +225,9 @@ export async function POST(request: NextRequest) {
         user_id,
         product_id,
         quantity,
-        selected_size,
-        products!inner(name, images, sizes)
+        selected_size
       `)
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .order('created_at', { ascending: false });
 
     if (fetchError) {
@@ -199,22 +238,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Enhance cart items with complete product data including images
+    const enhancedItems = await enhanceCartItemsWithProductData(cartItems || []);
+
     // Transform the response and calculate prices
-    const transformedItems = (cartItems || []).map((item: any) => {
-      const product = item.products;
-      const sizes = product?.sizes || {};
+    const transformedItems = enhancedItems.map((item: any) => {
       const selectedSize = item.selected_size || '100ml';
-      const price = (sizes[selectedSize]?.price) || 799;
+      const price = getSizePrice(selectedSize);
       
       return {
         id: item.id,
         user_id: item.user_id,
         product_id: item.product_id,
-        product_name: product?.name || '',
+        product_name: item.product_name,
         product_price: price,
         quantity: item.quantity,
         selected_size: selectedSize,
-        product_images: product?.images || [],
+        product_images: item.product_images || [],
         total_price: price * item.quantity,
       };
     });
