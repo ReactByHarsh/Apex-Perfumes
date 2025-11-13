@@ -15,6 +15,49 @@ export interface CartItemWithProduct {
   total_price: number
 }
 
+// Ensure user profile exists
+export async function ensureUserProfile(userId: string, userMetadata?: { full_name?: string }) {
+  try {
+    const { data: existingProfile, error: selectError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (selectError && selectError.code !== 'PGRST116') {
+      console.warn('Error checking profile:', selectError);
+    }
+
+    if (!existingProfile) {
+      console.log('Profile not found, creating profile for user:', userId);
+      
+      // Extract name from metadata or default
+      const fullName = userMetadata?.full_name || '';
+      const nameParts = fullName.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          first_name: firstName,
+          last_name: lastName,
+        });
+
+      if (insertError) {
+        console.warn('Profile creation failed:', insertError);
+        // Don't throw error, continue without profile
+      } else {
+        console.log('Profile created successfully for user:', userId);
+      }
+    }
+  } catch (error) {
+    console.warn('Error ensuring profile:', error);
+    // Don't throw - allow cart operations to continue
+  }
+}
+
 // Get user's cart items
 export async function getCartItems(userId: string): Promise<CartItemWithProduct[]> {
   const { data, error } = await supabase
@@ -47,18 +90,65 @@ export async function addToCart(
   quantity: number = 1,
   selectedSize: string = '100ml'
 ): Promise<boolean> {
-  const { error } = await supabase.rpc('upsert_cart_item_with_size', {
-    p_user_id: userId,
-    p_product_id: productId,
-    p_quantity: quantity,
-    p_selected_size: selectedSize
-  })
+  try {
+    console.log('🛒 Adding to cart:', { userId, productId, quantity, selectedSize });
+    
+    // Ensure user profile exists first
+    const { data: { user } } = await supabase.auth.getUser();
+    await ensureUserProfile(userId, user?.user_metadata);
+    
+    // First check if the item already exists
+    const { data: existingItem, error: selectError } = await supabase
+      .from('cart_items')
+      .select('id, quantity')
+      .eq('user_id', userId)
+      .eq('product_id', productId)
+      .eq('selected_size', selectedSize)
+      .maybeSingle();
 
-  if (error) {
-    throw error
+    if (selectError) {
+      console.error('❌ Error checking existing cart item:', selectError);
+      throw selectError;
+    }
+
+    if (existingItem) {
+      // Update existing item directly
+      const newQuantity = existingItem.quantity + quantity;
+      const { error: updateError } = await supabase
+        .from('cart_items')
+        .update({ 
+          quantity: newQuantity,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existingItem.id);
+
+      if (updateError) {
+        console.error('❌ Error updating cart item:', updateError);
+        throw updateError;
+      }
+    } else {
+      // Insert new item directly
+      const { error: insertError } = await supabase
+        .from('cart_items')
+        .insert({
+          user_id: userId,
+          product_id: productId,
+          quantity: quantity,
+          selected_size: selectedSize
+        });
+
+      if (insertError) {
+        console.error('❌ Error inserting cart item:', insertError);
+        throw insertError;
+      }
+    }
+
+    console.log('✅ Successfully added to cart');
+    return true;
+  } catch (error) {
+    console.error('❌ Error in addToCart:', error);
+    throw error;
   }
-
-  return true;
 }
 
 // Remove item from cart (with size support)
@@ -67,11 +157,12 @@ export async function removeFromCart(
   productId: string,
   selectedSize: string = '100ml'
 ): Promise<boolean> {
-  const { error } = await supabase.rpc('remove_cart_item_with_size', {
-    p_user_id: userId,
-    p_product_id: productId,
-    p_selected_size: selectedSize
-  })
+  const { error } = await supabase
+    .from('cart_items')
+    .delete()
+    .eq('user_id', userId)
+    .eq('product_id', productId)
+    .eq('selected_size', selectedSize)
 
   if (error) {
     throw error
@@ -92,12 +183,15 @@ export async function updateCartItemQuantity(
     return true;
   }
 
-  const { error } = await supabase.rpc('set_cart_item_quantity_with_size', {
-    p_user_id: userId,
-    p_product_id: productId,
-    p_quantity: quantity,
-    p_selected_size: selectedSize
-  })
+  const { error } = await supabase
+    .from('cart_items')
+    .update({ 
+      quantity: quantity,
+      updated_at: new Date().toISOString()
+    })
+    .eq('user_id', userId)
+    .eq('product_id', productId)
+    .eq('selected_size', selectedSize)
 
   if (error) {
     throw error
@@ -108,9 +202,10 @@ export async function updateCartItemQuantity(
 
 // Clear entire cart
 export async function clearCart(userId: string): Promise<boolean> {
-  const { error } = await supabase.rpc('clear_cart', {
-    p_user_id: userId
-  })
+  const { error } = await supabase
+    .from('cart_items')
+    .delete()
+    .eq('user_id', userId)
 
   if (error) {
     throw error

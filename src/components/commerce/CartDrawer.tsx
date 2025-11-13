@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { X, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import { useCartStore } from '@/stores/cart';
+import { useAuthStore } from '@/stores/auth';
+import { removeFromCart } from '@/lib/supabase/cart';
 import { Button } from '@/components/ui/Button';
 import { formatPrice } from '@/lib/utils';
 import Link from 'next/link';
@@ -16,34 +18,67 @@ const SIZE_PRICES: Record<string, number> = {
 export function CartDrawer() {
   const { 
     items, 
-    isOpen, 
+    isOpen,
+    isLoading,
+    error,
     closeCart, 
     updateQuantity, 
     removeItem, 
     getSubtotal, 
     getTax, 
-    getTotal 
+    getTotal,
+    clearError,
+    setItems
   } = useCartStore();
 
   const [loadingItems, setLoadingItems] = useState<Set<string>>(new Set());
 
   const handleSizeChange = async (productId: string, oldSize: string, newSize: string, quantity: number) => {
-    const itemKey = `${productId}-${oldSize}`;
-    setLoadingItems(prev => new Set(prev).add(itemKey));
+    const oldItemKey = `${productId}-${oldSize}`;
+    const newItemKey = `${productId}-${newSize}`;
+    
+    // Add both old and new keys to loading state
+    setLoadingItems(prev => {
+      const newSet = new Set(prev);
+      newSet.add(oldItemKey);
+      newSet.add(newItemKey);
+      return newSet;
+    });
     
     try {
-      // Remove from old size
-      await removeItem(productId, oldSize);
-      // Add to new size
-      await useCartStore.getState().addItem(
-        items.find(item => item.product.id === productId && item.selectedSize === oldSize)?.product!,
-        quantity,
-        newSize
-      );
+      // Find the product
+      const item = items.find(item => item.product.id === productId && item.selectedSize === oldSize);
+      if (!item) {
+        throw new Error('Product not found');
+      }
+
+      const user = useAuthStore.getState().user;
+      
+      if (user) {
+        // For authenticated users, use the cart store methods which handle loading state properly
+        await removeItem(productId, oldSize);
+        await useCartStore.getState().addItem(item.product, quantity, newSize);
+      } else {
+        // For guest users, handle locally
+        const newItems = items
+          .filter(currentItem => !(currentItem.product.id === productId && currentItem.selectedSize === oldSize))
+          .concat([{
+            ...item,
+            id: newItemKey,
+            selectedSize: newSize
+          }]);
+        
+        setItems(newItems);
+      }
+      
+    } catch (error) {
+      console.error('Error changing size:', error);
     } finally {
+      // Clear both loading states
       setLoadingItems(prev => {
         const newSet = new Set(prev);
-        newSet.delete(itemKey);
+        newSet.delete(oldItemKey);
+        newSet.delete(newItemKey);
         return newSet;
       });
     }
@@ -112,7 +147,30 @@ export function CartDrawer() {
 
         {/* Cart items */}
         <div className="flex-1 overflow-y-auto p-6">
-          {items.length === 0 ? (
+          {/* Error display */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+                <button 
+                  onClick={clearError}
+                  className="text-red-500 hover:text-red-700 dark:text-red-400"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {/* Loading state */}
+          {isLoading ? (
+            <div className="text-center py-12 flex flex-col items-center justify-center h-full">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
+              <p className="text-slate-600 dark:text-gray-400 mb-4 font-medium mt-4">
+                Loading your cart...
+              </p>
+            </div>
+          ) : items.length === 0 ? (
             <div className="text-center py-12 flex flex-col items-center justify-center h-full">
               <div className="mb-4">
                 <ShoppingBag className="h-16 w-16 text-gray-300 dark:text-slate-600 mx-auto mb-4 opacity-50" />
@@ -135,7 +193,7 @@ export function CartDrawer() {
               {items.map(item => {
                 const selectedSize = item.selectedSize || '100ml';
                 const itemKey = `${item.product.id}-${selectedSize}`;
-                const isLoading = loadingItems.has(itemKey);
+                const isItemLoading = loadingItems.has(itemKey);
                 const itemPrice = getItemPrice(selectedSize);
                 const itemTotal = itemPrice * item.quantity;
 
@@ -150,6 +208,11 @@ export function CartDrawer() {
                       {item.quantity > 1 && (
                         <div className="absolute -top-2 -right-2 bg-amber-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
                           {item.quantity}
+                        </div>
+                      )}
+                      {isItemLoading && (
+                        <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
                         </div>
                       )}
                     </div>
@@ -168,7 +231,7 @@ export function CartDrawer() {
                         <select
                           value={selectedSize}
                           onChange={(e) => handleSizeChange(item.product.id, selectedSize, e.target.value, item.quantity)}
-                          disabled={isLoading}
+                          disabled={isItemLoading}
                           className="px-2 py-1 text-xs border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium disabled:opacity-50 hover:border-amber-400 dark:hover:border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400 transition-colors"
                         >
                           {SIZES.map(size => (
@@ -183,7 +246,7 @@ export function CartDrawer() {
                       <div className="flex items-center space-x-1 mt-2 bg-gray-100 dark:bg-slate-800 rounded-lg p-1 w-fit">
                         <button
                           onClick={() => handleQuantityChange(item.product.id, selectedSize, item.quantity - 1)}
-                          disabled={isLoading}
+                          disabled={isItemLoading}
                           className="p-1 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors disabled:opacity-50 text-slate-600 dark:text-gray-400"
                         >
                           <Minus className="h-3 w-3" />
@@ -191,7 +254,7 @@ export function CartDrawer() {
                         <span className="text-sm font-semibold w-6 text-center text-slate-900 dark:text-white">{item.quantity}</span>
                         <button
                           onClick={() => handleQuantityChange(item.product.id, selectedSize, item.quantity + 1)}
-                          disabled={isLoading}
+                          disabled={isItemLoading}
                           className="p-1 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors disabled:opacity-50 text-slate-600 dark:text-gray-400"
                         >
                           <Plus className="h-3 w-3" />
@@ -199,7 +262,7 @@ export function CartDrawer() {
                         <div className="border-l border-gray-300 dark:border-slate-700 mx-1"></div>
                         <button
                           onClick={() => handleRemoveItem(item.product.id, selectedSize)}
-                          disabled={isLoading}
+                          disabled={isItemLoading}
                           className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 dark:text-red-400 rounded transition-colors disabled:opacity-50"
                           title="Remove item"
                         >

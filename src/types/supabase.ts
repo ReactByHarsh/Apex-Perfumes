@@ -14,6 +14,8 @@ export interface Database {
           id: string
           email: string
           full_name: string | null
+          first_name: string | null
+          last_name: string | null
           avatar_url: string | null
           phone: string | null
           created_at: string
@@ -21,8 +23,10 @@ export interface Database {
         }
         Insert: {
           id: string
-          email: string
+          email?: string
           full_name?: string | null
+          first_name?: string | null
+          last_name?: string | null
           avatar_url?: string | null
           phone?: string | null
           created_at?: string
@@ -32,6 +36,8 @@ export interface Database {
           id?: string
           email?: string
           full_name?: string | null
+          first_name?: string | null
+          last_name?: string | null
           avatar_url?: string | null
           phone?: string | null
           created_at?: string
