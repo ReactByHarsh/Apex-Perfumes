@@ -225,6 +225,7 @@ export async function updateProfile(userId: string, updates: UpdateProfileData) 
     updated_at: new Date().toISOString(),
   }
 
+
   if (updates.full_name !== undefined) {
     updateData.full_name = updates.full_name
   }
